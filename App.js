@@ -15,125 +15,152 @@ import {
   FlatList,
   Platform,
 } from "react-native";
+import { TapGestureHandler } from "react-native-gesture-handler";
 
 const generateKey = (pre) => {
   return `${pre}_${new Date().getTime()}`;
 };
 
-function LocationEditScreen({ route, navigation }) {
-  const { location } = route.params;
-  const [locationName, setLocationName] = React.useState(location.locationName);
-  const [id, setId] = React.useState(location.id);
-  const [isGallons, setIsGallons] = useState(location.isGallons);
-  const toggleSwitch = () => setIsGallons((previousState) => !previousState);
+class LocationEditScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    this.readings = props.route.params.location.readings;
+    console.log("params: " + props.route.params.updateLocations);
+    this.updateLocations = props.route.params.updateLocations;
+    this.location = props.route.params.location;
+    console.log(this.location);
+    this.state = {
+      readingInput: "",
+      locationNameInput: this.location.locationName,
+      locationIdInput: this.location.id,
+      isGallonsInput: this.location.isGallons,
+      readingsHolder: [this.readings],
+    };
 
-  const [meterReadings, setReadings] = useState(location.readings);
-  const [meterReadingInput, setReadingInput] = useState("");
+    console.log("1");
+    console.log("2");
+    console.log("3");
+  }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.inputView}>
-        <Text style={styles.inputText}>Location: </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Location Name"
-          onChangeText={(text) => setLocationName(text)}
-          defaultValue={location.locationName}
-        />
-        <Text style={styles.inputText}>ID: </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Id"
-          onChangeText={(text) => setId(text)}
-          defaultValue={location.id}
-        />
-        <Text style={styles.inputText}>Is Gallons:</Text>
-        <Switch
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
-          thumbColor={isGallons ? "#f5dd4b" : "#f4f3f4"}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={toggleSwitch}
-          value={isGallons}
-          defaultValue={location.isGallons}
-        />
-        <Text style={styles.inputText}>Enter New Reading: </Text>
-        <View style={styles.readingInput}>
+  componentDidMount() {
+    console.log("4");
+    this.setState({ readingsHolder: [...this.readings] });
+  }
+
+  render() {
+    const { navigation } = this.props;
+
+    const setLocationName = (text) => {
+      this.setState({ locationNameInput: text });
+    };
+    const setLocationId = (text) => {
+      this.setState({ locationIdInput: text });
+    };
+    const toggleGallons = () => {
+      var lastState = this.state.isGallonsInput;
+      this.setState({ isGallonsInput: !lastState });
+    };
+    const setReadingInput = (text) => {
+      this.setState({ readingInput: text });
+    };
+    const addReading = () => {
+      var newReading = {};
+      newReading.reading = this.state.readingInput;
+      newReading.key = generateKey(newReading.reading);
+      this.readings.push(newReading);
+      console.log("newReading : " + newReading.reading);
+      this.setState({ readingsHolder: [...this.readings] });
+    };
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.inputView}>
+          <Text style={styles.inputText}>Location: </Text>
           <TextInput
             style={styles.input}
-            placeholder="Reading"
-            onChangeText={(text) => setReadingInput(text)}
-            value={meterReadingInput}
+            placeholder="Location Name"
+            onChangeText={(text) => setLocationName(text)}
+            defaultValue={this.state.locationNameInput}
+            value={this.state.locationNameInput}
           />
-          <Button
-            onPress={() => {
-              var newReading = {};
-              newReading.reading = meterReadingInput;
-              newReading.key = generateKey(meterReadingInput);
-              meterReadings.push(newReading);
-              setReadingInput("");
+          <Text style={styles.inputText}>ID: </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Id"
+            onChangeText={(text) => setLocationId(text)}
+            defaultValue={this.state.locationIdInput}
+            value={this.state.locationIdInput}
+          />
+          <Text style={styles.inputText}>Is Gallons:</Text>
+          <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={this.state.isGallonsInput ? "#f5dd4b" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleGallons}
+            defaultValue={this.state.isGallonsInput}
+            value={this.state.isGallonsInput}
+          />
+          <Text style={styles.inputText}>Enter New Reading: </Text>
+          <View style={styles.readingInput}>
+            <TextInput
+              style={styles.input}
+              placeholder="Reading"
+              onChangeText={(text) => setReadingInput(text)}
+              value={this.state.readingInput}
+            />
+            <Button
+              onPress={() => {
+                addReading();
+                setReadingInput("");
+              }}
+              title="Submit Reading"
+              color="#3d5975"
+            />
+          </View>
+          <FlatList
+            data={this.state.readingsHolder}
+            renderItem={({ item }) => {
+              return (
+                <View style={styles.locationListElementView}>
+                  <Text style={styles.readingText}>{item.reading}</Text>
+                  <Button
+                    onPress={() => {
+                      const newList = this.state.readings.filter(
+                        (i) => item.key !== i.key
+                      );
+                      this.setState({ readingsHolder: [newList] });
+                    }}
+                    title="X"
+                    color="#875823"
+                  />
+                </View>
+              );
             }}
-            title="Submit Reading"
-            color="#3d5975"
+            keyExtractor={(item, index) => item.key}
           />
         </View>
-        <FlatList
-          data={meterReadings}
-          renderItem={({ item }) => {
-            return (
-              <View style={styles.locationListElementView}>
-                <Text style={styles.readingText}>{item.reading}</Text>
-                <Button
-                  onPress={() => {
-                    const newList = meterReadings.filter(
-                      (i) => item.key !== i.key
-                    );
-                    setReadings(newList);
-                  }}
-                  title="X"
-                  color="#875823"
-                />
-              </View>
-            );
+        <Button
+          onPress={() => {
+            var newLocation = {
+              locationName: this.state.locationNameInput,
+              id: this.state.locationIdInput,
+              /*key:
+                this.state.location.key === "" ||
+                this.state.location.key === undefined
+                  ? generateKey(this.state.location.id)
+                  : this.state.location.key,*/
+              readings: this.readings,
+              isGallons: this.state.isGallonsInput,
+            };
+            console.log("update locations: " + this.updateLocations);
+            saveLocation(newLocation, this.updateLocations, navigation);
           }}
-          keyExtractor={(item, index) => item.key}
+          title="Finish"
+          color="#3d5975"
         />
-      </View>
-      <Button
-        onPress={() => {
-          var newLocation = {
-            locationName: locationName,
-            id: id,
-            key:
-              location.key === "" || location.key === undefined
-                ? generateKey(location.id)
-                : location.key,
-            readings: meterReadings,
-            isGallons: isGallons,
-          };
-          saveLocation(newLocation, navigation);
-        }}
-        title="Finish"
-        color="#3d5975"
-      />
-      <StatusBar style="auto" />
-    </SafeAreaView>
-  );
-}
-
-function GoToEditLocation({ location }) {
-  const navigation = useNavigation();
-  return (
-    <Button
-      onPress={() => {
-        console.log("Opening : " + location.readings);
-        navigation.navigate("Edit Location", {
-          location: location,
-        });
-      }}
-      title="Edit"
-      color="#3d5975"
-    />
-  );
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    );
+  }
 }
 
 function deleteLocation(location) {
@@ -150,17 +177,16 @@ function deleteLocation(location) {
 }
 
 class LocationList extends React.Component {
-  state = {
-    isFetching: false,
-    locations: [],
-  };
-
-  componentDidMount() {
-    this.updateList();
+  constructor(props) {
+    super(props);
+    this.state = {
+      isFetching: false,
+      locations: [],
+    };
   }
 
-  updateList = () => {
-    this.setState({ isFetching: true, locations: [] });
+  updateLocations = function () {
+    this.setState({ isFetching: true });
     fetch("https://l9yr8a51w6.execute-api.us-east-2.amazonaws.com/development")
       .then((response) => response.json())
       .then((json) => {
@@ -187,42 +213,77 @@ class LocationList extends React.Component {
       });
   };
 
+  componentDidMount() {
+    this.updateLocations();
+  }
+
   render() {
+    const { navigation } = this.props;
+
     return (
-      <FlatList
-        onRefresh={() => this.updateList()}
-        refreshing={this.state.isFetching}
-        contentContainerStyle={{ flexGrow: 1 }}
-        data={this.state.locations}
-        renderItem={({ item }) => {
-          console.log("home : " + item);
-          return (
-            <View style={styles.locationListElementView}>
-              <View style={styles.locationNameView}>
-                <Text style={styles.locationName}>{item.locationName}</Text>
+      <SafeAreaView>
+        <FlatList
+          onRefresh={() => this.updateLocations()}
+          refreshing={this.state.isFetching}
+          contentContainerStyle={{ flexGrow: 1 }}
+          data={this.state.locations}
+          renderItem={({ item }) => {
+            console.log("home : " + item);
+            return (
+              <View style={styles.locationListElementView}>
+                <View style={styles.locationNameView}>
+                  <Text style={styles.locationName}>{item.locationName}</Text>
+                </View>
+                <View style={styles.locationButtonView}>
+                  <Button
+                    onPress={() => {
+                      console.log("Opening : " + item.readings);
+                      navigation.navigate("Edit Location", {
+                        location: item,
+                        updateLocations: this.updateLocations.bind(this),
+                      });
+                    }}
+                    title="Edit"
+                    color="#3d5975"
+                  />
+                  <Button
+                    onPress={() => {
+                      deleteLocation(item);
+                      const newList = this.state.locations.filter(
+                        (i) => item.key !== i.key
+                      );
+                      this.setState({
+                        isFetching: false,
+                        locations: newList,
+                      });
+                    }}
+                    title="Delete"
+                    color="#875823"
+                  />
+                </View>
               </View>
-              <View style={styles.locationButtonView}>
-                <GoToEditLocation location={item} />
-                <Button
-                  onPress={() => {
-                    deleteLocation(item);
-                    const newList = this.state.locations.filter(
-                      (i) => item.key !== i.key
-                    );
-                    this.setState({
-                      isFetching: false,
-                      locations: newList,
-                    });
-                  }}
-                  title="Delete"
-                  color="#875823"
-                />
-              </View>
-            </View>
-          );
-        }}
-        keyExtractor={(item, index) => item.key}
-      />
+            );
+          }}
+          keyExtractor={(item, index) => item.key}
+        />
+        <Button
+          onPress={() => {
+            var newLocation = {
+              locationName: "",
+              id: "",
+              key: "",
+              readings: [],
+              isGallons: false,
+            };
+            navigation.navigate("Edit Location", {
+              location: newLocation,
+              updateLocations: this.updateLocations.bind(this),
+            });
+          }}
+          title="New Location"
+          color="#3d5975"
+        />
+      </SafeAreaView>
     );
   }
 }
@@ -231,8 +292,8 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function saveLocation(location, navigation) {
-  console.log("saving location : " + location.id);
+async function saveLocation(location, updateLocations, navigation) {
+  console.log("saving location : " + location.readings);
   let response = await fetch(
     "https://l9yr8a51w6.execute-api.us-east-2.amazonaws.com/development/",
     {
@@ -252,31 +313,23 @@ async function saveLocation(location, navigation) {
     console.log(JSON.stringify(response));
   });
 
+  updateLocations();
   navigation.navigate("Adaptive Resources Inc.");
 }
 
-function HomeScreen({ route, navigation }) {
-  return (
-    <SafeAreaView style={styles.container}>
-      <LocationList />
-      <Button
-        onPress={() => {
-          var newLocation = {
-            locationName: "",
-            id: "",
-            key: "",
-            readings: [],
-            isGallons: false,
-          };
-          navigation.navigate("Edit Location", {
-            location: newLocation,
-          });
-        }}
-        title="New Location"
-        color="#3d5975"
-      />
-    </SafeAreaView>
-  );
+class HomeScreen extends React.Component {
+  static navigationOptions = {
+    title: "Adaptive Resources Inc.",
+  };
+
+  render() {
+    const { navigation } = this.props;
+    return (
+      <SafeAreaView style={styles.container}>
+        <LocationList {...this.props} navigation={navigation} />
+      </SafeAreaView>
+    );
+  }
 }
 
 const Stack = createStackNavigator();
