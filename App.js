@@ -35,16 +35,11 @@ class LocationEditScreen extends React.Component {
       locationNameInput: this.location.locationName,
       locationIdInput: this.location.id,
       isGallonsInput: this.location.isGallons,
-      readingsHolder: [this.readings],
+      readingsHolder: [],
     };
-
-    console.log("1");
-    console.log("2");
-    console.log("3");
   }
 
   componentDidMount() {
-    console.log("4");
     this.setState({ readingsHolder: [...this.readings] });
   }
 
@@ -197,13 +192,11 @@ class LocationList extends React.Component {
           results[i].key = generateKey(results[i].id);
           console.log("hello? : " + results[i].readings);
           for (var k = 0; k < results[i].readings.length; k++) {
-            console.log("2");
             var reading = results[i].readings[k];
             console.log(reading);
             if (reading === undefined) {
               continue;
             }
-            console.log("3");
             results[i].readings[k] = {
               reading: reading,
               key: generateKey(results[i].id + reading),

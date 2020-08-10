@@ -17,11 +17,12 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.jwalt39.adaptive-resources-app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "description": ""
+    "description": "Example data entry application for Adaptive Resources Inc.",
+    "githubUrl": "https://github.com/jwalt39/adaptive-resources-app"
   }
 }
