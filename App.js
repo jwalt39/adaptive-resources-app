@@ -14,6 +14,7 @@ import {
   Button,
   FlatList,
   Platform,
+  YellowBox,
 } from "react-native";
 import { TapGestureHandler } from "react-native-gesture-handler";
 
@@ -288,9 +289,10 @@ class LocationList extends React.Component {
   }
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+YellowBox.ignoreWarnings([
+  "Non-serializable values were found in the navigation state",
+  "Each child in a list should have a unique 'key' prop",
+]);
 
 async function saveLocation(location, updateLocations, navigation) {
   console.log("saving location : " + location.readings);
